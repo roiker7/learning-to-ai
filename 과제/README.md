@@ -2,16 +2,18 @@
 
 과제마다 폴더를 하나씩 둔다. 지난 과제는 다시 만드는 것이 아니라 **흩어진 저장소를 이곳으로 합치는 것**이다.
 
-## 합칠 후보 (확인 전)
-| 과제 | 원본 저장소 | 처음 작업한 컴퓨터에서 본 상태 (2026-11-25) |
+## 과제 목록
+| 과제 | 원본 저장소 | 상태 (2026-11-25) |
 |---|---|---|
-| E1-1 | [codyssey_E1-1](https://github.com/roiker7/codyssey_E1-1) | 커밋하지 않은 수정 1개 |
-| E1-2 | [codyssey_E1-2](https://github.com/roiker7/codyssey_E1-2) | 원격보다 1커밋 뒤처짐 |
-| E1-3 | [codyssey_E1-3](https://github.com/roiker7/codyssey_E1-3) | 깨끗함 |
-| B1-1 | [B1-1](https://github.com/roiker7/B1-1) | 원격보다 1커밋 뒤처짐 |
-| B1-2 | [B1-2](https://github.com/roiker7/B1-2) | 깨끗함 (배포 설정 `vercel.json` 있음) |
-| B2-1 | [B2-1](https://github.com/roiker7/B2-1) | 진행 중. 완성 코드가 커밋되지 않음 |
-| B2-2 | [B2-2](https://github.com/roiker7/B2-2) | 로컬에 커밋이 없음 |
+| [E1-1](E1-1/) | [codyssey_E1-1](https://github.com/roiker7/codyssey_E1-1) | 합침 |
+| [E1-2](E1-2/) | [codyssey_E1-2](https://github.com/roiker7/codyssey_E1-2) | 합침 (main 브랜치만) |
+| [E1-3](E1-3/) | [codyssey_E1-3](https://github.com/roiker7/codyssey_E1-3) | 합침 (main 브랜치만) |
+| [B1-1](B1-1/) | [B1-1](https://github.com/roiker7/B1-1) | 합침 |
+| [B1-2](B1-2/) | [B1-2](https://github.com/roiker7/B1-2) | 합침. `vercel.json` 배포는 원본에서 유지 |
+| [B2-1](B2-1/) | [B2-1](https://github.com/roiker7/B2-1) | 합침. 진행 중이며 커밋하지 않았던 완성 코드 포함 |
+| B2-2 | [B2-2](https://github.com/roiker7/B2-2) | 원격이 비어 있어 합칠 내용이 없음. 로컬 폴더에는 팀 저장소 복사본만 있음 |
+
+커밋 기록의 개인·코디세이 이메일은 GitHub 비공개 주소로 바꿔 가져왔다. 그래서 일부 커밋 번호가 원본과 다르다.
 
 ## 합치는 원칙
 - 커밋 기록까지 가져온다(`git subtree`). 로컬이 아니라 최신 원격을 기준으로 하고, 커밋하지 않은 변경은 학습자에게 확인한다.
