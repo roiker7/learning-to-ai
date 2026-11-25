@@ -1,0 +1,767 @@
+# 개발 워크스테이션 구축 실습 (Linux · Docker · Git)
+
+##  프로젝트 개요
+
+리눅스 터미널 기본 조작, 파일 권한 관리, Docker 설치 및 기본 운영, 기존 Dockerfile 기반 커스텀 이미지 제작, 포트 매핑, 바인드 마운트, Docker 볼륨을 통한 데이터 영속성 검증, Git/GitHub 연동까지 개발 환경 구축에 필요한 핵심 요소를 직접 실습하고 그 과정을 문서화한 프로젝트이다.
+
+이 과정을 통해 다음을 스스로 설명할 수 있는 것을 목표로 한다.
+
+1. 절대 경로와 상대 경로의 차이
+   - 절대 경로: 내가 현재 어느 폴더에 있든 상관없이 항상 같은 곳을 가리킵니다.
+   - 상대 경로: 내가 어디에 있느냐에 따라 가리키는 위치가 달라집니다.
+    
+2. 파일 권한(r/w/x)의 의미와 `755`, `644` 같은 숫자 표기의 규칙
+3. 기존 Dockerfile을 기반으로 커스텀 이미지를 만드는 방법
+   - 기존 Dockerfile을 수정해서 새 이미지 빌드하기
+   - 기존 이미지를 FROM으로 상속해서 새 Dockerfile 만들기
+     ```
+     FROM nginx:latest
+     ```
+4. 포트 매핑이 필요한 이유
+   - 컨테이너 내부에서 잘 실행 중이어도, 호스트에서 바로 접속할 수는 없습니다.
+   ```
+   docker run -d -p 8080:80 nginx
+   ```
+   - 내 컴퓨터의 8080번 포트로 들어온 요청을 컨테이너의 80번 포트로 보내라
+5. Docker 볼륨(영속 데이터)의 동작 방식
+6. Git과 GitHub의 역할 차이(로컬 버전관리 vs 원격 협업 플랫폼)
+
+##  실행 환경
+
+```text
+OS       : macOS
+Shell    : zsh
+Docker   : 29.4.0 (Docker Context: orbstack / OrbStack 사용)
+Git      : 2.53.0
+Kernel   : 24.6.0
+```
+
+## 수행 항목 체크리스트
+
+| 항목 | 수행 여부 |
+|---|---|
+| 터미널 기본 명령어 실습 (경로 확인/이동/생성/복사/삭제) | ✅ |
+| 파일·디렉토리 권한 실습 (`chmod`) | ✅ |
+| Docker 설치 및 데몬 동작 점검 | ✅ |
+| Docker 기본 운영 명령 (image/container/log/stats) | ✅ |
+| 컨테이너 실행 실습 (`hello-world`, `ubuntu`) | ✅ |
+| 컨테이너 종료/유지 방식 비교 (`exit` / `Ctrl+P,Q` / `exec`) | ✅ |
+| 기존 Dockerfile(nginx) 기반 커스텀 이미지 제작 | ✅ |
+| 포트 매핑 및 접속 검증 | ✅ |
+| 바인드 마운트 vs 이미지 빌드 비교 관찰 | ✅ |
+| Docker 볼륨 영속성 검증 | ✅ |
+| Git 설정 및 GitHub 연동 | ✅ |
+| 트러블슈팅 기록 (2건 이상) | ✅ |
+| 보안/개인정보 마스킹 점검 | ✅ |
+
+---
+
+## Step 1. Git 설정 및 GitHub 연동
+
+`git config --list` 결과로 사용자 정보 및 원격 저장소 연동 상태를 확인했다. (개인 식별 정보는 마스킹 처리)
+
+```bash
+git config --list
+```
+
+```text
+credential.helper=osxkeychain
+user.name="개인정보삭제"
+user.email="개인정보삭제"
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+core.ignorecase=true
+core.precomposeunicode=true
+remote.origin.url=https:"개인정보삭제"
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+branch.main.vscode-merge-base=origin/main
+```
+
+**검증 방법**: `remote.origin.url`, `branch.main.remote`, `branch.main.merge` 값이 모두 정상적으로 설정되어 있는 것으로 GitHub 저장소와의 연동 및 `main` 브랜치 추적 설정이 완료되었음을 확인했다. 
+
+---
+
+## Step 2. 리눅스 터미널 및 권한 실습
+
+### 2-1. 기본 명령어 실습
+
+**현재 위치 확인**
+
+```bash
+pwd
+```
+
+```text
+/Users/<user>
+```
+
+**파일 목록 확인 및 이동**
+
+```bash
+ls
+```
+
+```text
+codyssey_E1-1	Desktop		Library		OrbStack
+codyssey_E1-2	Documents	Movies		Pictures
+codyssey_E1-3	Downloads	Music		Public
+```
+
+```bash
+cd codyssey_E1-1
+pwd
+```
+
+```text
+/Users/<user>/codyssey_E1-1
+```
+
+**숨김 파일 포함 목록 확인**
+
+```bash
+ls -al
+```
+
+```text
+total 24
+drwxr-xr-x   7 <user>  <user>  224  7 30 10:08 .
+drwxr-x---+ 24 <user>  <user>  768  7 30 15:54 ..
+drwxr-xr-x  12 <user>  <user>  384  7 30 10:06 .git
+drwxr-xr-x   9 <user>  <user>  288  7 30 15:22 codyssey_test
+-rw-r--r--   1 <user>  <user>  237  7 30 10:06 Dockerfile
+-rw-r--r--   1 <user>  <user>  260  7 30 10:06 index.html
+-rw-r--r--   1 <user>  <user>  314  7 30 10:06 README.md
+```
+
+**디렉토리 생성 및 파일 생성/조회**
+
+```bash
+mkdir terminal_test
+ls
+```
+
+```text
+codyssey_test	Dockerfile	index.html	README.md	terminal_test
+```
+
+```bash
+cd terminal_test
+echo "테스트용" > test.txt
+cat test.txt
+```
+
+```text
+테스트용
+```
+
+**이동 및 이름 변경**
+
+```bash
+mv test.txt hello.txt
+ls
+```
+
+```text
+hello.txt
+```
+
+**파일 복사**
+
+```bash
+cp hello.txt test1.txt
+cat test1.txt
+```
+
+```text
+테스트용
+```
+
+**삭제**
+
+```bash
+rm test1.txt
+ls
+```
+
+```text
+hello.txt
+```
+
+### 2-2. 명령어 기능 정리
+
+| 분류 | 명령어 | 설명 |
+|---|---|---|
+| 디렉토리 생성/이동 | `mkdir 폴더명` | 새 디렉토리 생성 |
+| | `cd ..` | 상위 디렉토리로 이동 |
+| | `cd 폴더명` | 하위 디렉토리로 이동 |
+| | `cd ~` | 홈 디렉토리로 이동 |
+| 파일/디렉토리 관리 | `mv 파일명 이동할위치/` | 이동 또는 이름 변경 |
+| | `cp 원본파일 복사할파일` | 파일 복사 |
+| 삭제 | `rm -rf 폴더명` | 폴더 안 내용을 포함하여 모두 삭제 |
+| | `rm` | 파일과 디렉토리 모두 삭제 가능 |
+| | `rmdir` | 빈 디렉토리만 삭제 가능(파일 삭제 불가) |
+
+### 2-3. 권한 실습 (chmod)
+
+**대상**: 파일 1개(`test1`), 디렉토리 1개(`test2`)
+
+**생성 및 변경 전 확인**
+
+```bash
+touch test1
+mkdir test2
+ls -l
+```
+
+```text
+-rw-r--r--  1 <user>  <user>    0  7 30 16:21 test1
+drwxr-xr-x  2 <user>  <user>   64  7 30 16:21 test2
+```
+
+macOS 기본 권한은 파일 `644`, 디렉토리 `755`이다.
+
+**권한 변경**
+
+```bash
+chmod 777 test1   # 소유자·그룹·기타 모두 읽기/쓰기/실행 가능하게 변경
+chmod 700 test2   # 소유자만 읽기/쓰기/접근 가능하게 변경
+```
+
+**변경 후 확인**
+
+```bash
+ls -l
+```
+
+```text
+-rwxrwxrwx  1 <user>  <user>    0  7 30 16:21 test1
+drwx------  2 <user>  <user>   64  7 30 16:21 test2
+```
+
+**비교 요약**
+
+| 대상 | 변경 전 | 변경 후 | 의미 |
+|---|---|---|---|
+| `test1` (파일) | `rw-r--r--` (644) | `rwxrwxrwx` (777) | 소유자·그룹·기타 모두 모든 권한 부여|
+| `test2` (디렉토리) | `rwxr-xr-x` (755) | `rwx------` (700) | 소유자만 디렉토리 접근·탐색 가능 |
+
+**권한 체계 참고**
+
+| 숫자 | 권한 문자 | 의미 |
+|---|---|---|
+| 4 | r | 읽기 (Read) |
+| 2 | w | 쓰기 (Write) |
+| 1 | x | 실행 / 디렉토리 진입 (Execute) |
+
+- `rwx` = 7(4+2+1): 읽기·쓰기·실행 모두 가능
+- `rw-` = 6(4+2+0): 읽기·쓰기는 가능하나 실행 불가
+- `r-x` = 5(4+0+1): 읽기·실행은 가능하나 수정 불가
+- 디렉토리의 `x` 권한은 해당 디렉토리로 `cd` 진입할 수 있는 권한을 의미한다.
+- `777`은 모두에게 모든 권한을 부여하므로 보안상 위험하다.
+- 파일 권한은 `ls -l`, 디렉토리 자체의 권한은 `ls -ld`로 확인한다.
+- 권한이 000인 파일은 존재할 수 있을까?
+---
+
+## Step 3. Docker 설치 및 기본 점검
+
+```bash
+docker --version
+```
+
+```text
+Docker version 29.4.0
+```
+
+```bash
+docker info
+```
+
+```text
+Client:
+ Version:    29.4.0
+ Context:    orbstack
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.33.0
+    Path:     /Users/<user>/.docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v5.1.2
+    Path:     /Users/<user>/.docker/cli-plugins/docker-compose
+
+Server:
+ Containers: 3
+  Running: 3
+  Paused: 0
+  Stopped: 0
+ Images: 5
+ Server Version: 29.4.0
+ Storage Driver: overlayfs
+  driver-type: io.containerd.snapshotter.v1
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+...(출력이 길어 이하 생략)
+```
+
+**검증 방법**: `docker --version`으로 클라이언트 버전을, `docker info`로 데몬 정상 동작 여부와 실행 중인 컨테이너/이미지 개수를 확인했다. OrbStack 컨텍스트에서 Docker 데몬이 정상 동작 중임을 확인했다.
+
+| 구분 | Dockerfile | Image | Container |
+|---|---|---|---|
+| 역할 | 어떤 환경을 만들지 명령어로 정의 | 컨테이너를 만들기 위한 원본 | 실제 애플리케이션 실행 |
+| 생성 방법 | 직접 작성 | docker build로 생성 | docker run으로 생성 및 실행 |
+| 상태 | 텍스트 파일 | 정적인 상태, 읽기 전용 | 실행 중이거나 중지된 상태 |
+| 포함 내용 | 베이스 이미지, 패키지 설치, 파일 복사, 실행 명령어 등 | 실행 파일, 라이브러리, 코드, 설정, 런타임 등 | 이미지 기반 실행 환경 + 변경 가능한 컨테이너 레이어 |
+| 변경 가능 여부 | 수정 가능 | 기본적으로 변경되지 않음 | 실행 중 파일 생성/수정 가능 |
+| 명령어 예시 | Dockerfile  | docker build -t my-app <br>docker pull nginx | docker run my-app<br>docker run -d -p 8080:80 nginx |
+| 핵심 포인트 | 이미지를 어떻게 만들지 적는다 | 하나의 이미지로 여러 컨테이너 생성 가능 | 호스트 커널을 공유하며 격리된 프로세스로 실행 |
+
+---
+
+## Step 4. Docker 기본 운영 명령 수행
+
+**이미지 다운로드 및 목록 확인**
+
+```bash
+docker pull nginx
+```
+
+```text
+Using default tag: latest
+latest: Pulling from library/nginx
+Digest: sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942
+Status: Image is up to date for nginx:latest
+docker.io/library/nginx:latest
+```
+
+```bash
+docker images
+```
+
+```text
+IMAGE                 ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-custom-nginx:v1    2851f043293e       93.9MB         26.1MB
+my-web-best:latest    09fde36a0971       93.9MB         26.1MB   U
+my-web-final:latest   2d27fe862309       93.9MB         26.1MB   U
+my-web:latest         329f7626e12a       93.9MB         26.1MB   U
+nginx:latest          5a88c9c45479        240MB           66MB   U
+```
+
+**컨테이너 실행 상태 확인**
+
+```bash
+docker ps -a
+```
+
+```text
+CONTAINER ID   IMAGE     COMMAND                   CREATED       STATUS                     PORTS                                     NAMES
+ac7bf8188c92   my-web    "/docker-entrypoint.…"   6 hours ago   Up 6 hours                 0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   web-container
+71b98034b225   nginx     "/docker-entrypoint.…"   6 hours ago   Exited (0) (방금 전)                                                 web-container-2
+```
+
+**리소스 사용량 확인**
+
+```bash
+docker stats --no-stream web-container
+```
+
+```text
+CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+ac7bf8188c92   web-container   0.00%     5.012MiB / 15.69GiB   0.03%     6.66kB / 3.08kB   11.3MB / 8.19kB   7
+```
+
+**로그 확인**
+
+```bash
+docker logs web-container
+```
+
+```text
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+```
+
+---
+
+## Step 5. 컨테이너 실행 실습
+
+### 5-1. hello-world 실행
+
+```bash
+docker run hello-world
+```
+
+```text
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+4f55086f7dd0: Pull complete
+d5e71e642bf5: Download complete
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+```
+
+### 5-2. ubuntu 컨테이너 진입 및 명령 실행
+
+```bash
+docker run -it --name my-ubuntu ubuntu bash
+```
+
+```text
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+a3679419df18: Pull complete
+ed819469700f: Pull complete
+e16351a257e4: Download complete
+Status: Downloaded newer image for ubuntu:latest
+```
+
+```bash
+root@abfc7ff7d760:/# ls
+```
+
+```text
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+```
+
+```bash
+root@abfc7ff7d760:/# echo "fighting!"
+```
+
+```text
+fighting!
+```
+
+### 5-3. 컨테이너 종료/유지 방식 비교
+
+**① `exit` — 컨테이너 자체가 종료됨**
+
+```bash
+root@abfc7ff7d760:/# exit
+```
+
+```bash
+docker ps -a
+```
+
+```text
+CONTAINER ID   IMAGE         COMMAND      CREATED          STATUS                      NAMES
+abfc7ff7d760   ubuntu        "bash"       6 minutes ago    Exited (0) 11 seconds ago   my-ubuntu
+```
+
+**② Ctrl + P, Q — 실행 상태가 유지된 채로 터미널에서만 빠져나옴**
+
+```bash
+docker ps
+```
+
+```text
+CONTAINER ID   IMAGE     COMMAND      CREATED         STATUS          NAMES
+abfc7ff7d760   ubuntu    "bash"       7 minutes ago   Up 43 seconds   my-ubuntu
+```
+
+**③ `docker exec`로 재진입 후 `exit` — 실행 상태 유지**
+
+```bash
+docker exec -it my-ubuntu bash
+root@abfc7ff7d760:/# exit
+docker ps
+```
+
+```text
+CONTAINER ID   IMAGE     COMMAND      CREATED          STATUS          NAMES
+abfc7ff7d760   ubuntu    "bash"       14 minutes ago   Up 7 minutes    my-ubuntu
+```
+
+**비교 요약**
+
+| 방식 | 동작 | 결과 |
+|---|---|---|
+| `exit` (attach 상태에서) | 컨테이너의 메인 프로세스(쉘)를 종료 | 컨테이너 exited |
+| `Ctrl + P, Q` | 터미널 연결만 해제, 프로세스는 유지 | 컨테이너 계속 실행|
+| `docker exec`로 진입 후 `exit` | exec으로 연 별도 세션만 종료, 메인 프로세스는 그대로 유지 | 컨테이너 계속 실행 |
+<br>
+- docker attach<br>
+컨테이너의 메인 프로세스(PID 1)에 직접 접속하는 방식입니다. 여기서 exit나 Ctrl+C를 누르면 메인 프로세스가 종료되어 컨테이너 전체가 멈추게 됩니다.
+<br>
+- docker exec<br>
+컨테이너 안에 새로운 프로세스를 따로 실행해서 들어가는 방식입니다. 여기서 exit를 하더라도 메인 프로세스는 계속 유지되므로 컨테이너는 멈추지 않고 계속 실행됩니다.
+<br><br>
+즉 컨테이너를 정지시키는 것은 "터미널 연결 해제"가 아니라 메인 프로세스 종료 여부임을 확인했다. exec으로 진입한 세션은 메인 프로세스와 독립적이므로, 그 세션에서 exit해도 컨테이너 자체에는 영향이 없다.
+
+---
+
+## Step 6. 기존 Dockerfile 기반 커스텀 이미지 제작 및 포트 매핑
+
+### 6-1. 선택한 베이스 이미지
+
+- **선택 방식**: (A) 웹 서버 베이스 이미지 활용
+- **베이스 이미지**: `nginx:alpine`
+- **선택 이유**: 단순한 정적 웹페이지 서비스가 목적이므로, 무거운 OS 환경이 포함된 기본 `nginx` 이미지 대신 초경량 리눅스인 Alpine 기반의 `nginx:alpine`을 선택했다.
+
+### 6-2. Dockerfile 및 커스텀 포인트
+
+```dockerfile
+# 가벼운 웹 서버 Nginx를 가져옵니다.
+FROM nginx:alpine
+
+# 방금 만든 HTML 파일을 도커 안의 웹 서버 폴더로 복사합니다.
+COPY index.html /usr/share/nginx/html/index.html
+
+# 웹 사이트에서 사용할 포트
+EXPOSE 80
+```
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>나의 도커 웹서버</title>
+</head>
+<body>
+    <h1>오늘의 명언</h1>
+    <p>오늘 하루 어제보다 1%라도 성장하면 1년 뒤는 37%를 성장 할 수 있다</p>
+    <p>fighting!!!!!</p>
+</body>
+</html>
+```
+
+**커스텀 포인트 목적**
+
+| 커스텀 포인트 | 목적 |
+|---|---|
+| `COPY index.html ...` | 기본 nginx 웰컴 페이지 대신 직접 제작한 페이지를 띄우기 위함 |
+| `EXPOSE 80` | 컨테이너가 사용하는 포트를 명시하여, 다른 사람이 이미지 사용 시 포트를 쉽게 파악할 수 있도록 함 |
+
+### 6-3. 빌드 및 실행 결과
+```
+ % docker build -t my-docker-html . # t의 의미, 마지막에 이미지를 지정하지 않고 . 을 사용하는 이유
+[+] Building 3.1s (7/7) FINISHED                                                                                docker:orbstack
+ => [internal] load build definition from Dockerfile                                                                       0.2s
+ => => transferring dockerfile: 289B                                                                                       0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine                                                            0.1s
+ => [internal] load .dockerignore                                                                                          0.2s
+ => => transferring context: 2B                                                                                            0.0s
+ => [internal] load build context                                                                                          0.3s
+ => => transferring context: 324B                                                                                          0.0s
+ => [1/2] FROM docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752      1.1s
+ => => resolve docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752      0.2s
+ => [2/2] COPY index.html /usr/share/nginx/html/index.html                                                                 0.1s
+ => exporting to image                                                                                                     0.9s
+ => => exporting layers                                                                                                    0.4s
+ => => exporting manifest sha256:71f2d651bcf10cbf11a7dfb3a7034d5ab2fd318c850574f491e3de776de12765                          0.0s
+ => => exporting config sha256:68a1ac7726b2eae40e370e3564459d2c45ed5cd04460de6029a2e4c4c883e98c                            0.1s
+ => => exporting attestation manifest sha256:cadd2ea198ee83305068a70dc7e867cb890954621321aca4a9d3737baccc1737              0.1s
+ => => exporting manifest list sha256:c78aac291208fb696f9dd24e61fd82502c0a68c8342c8a518ccbe4798191f6bb                     0.0s
+ => => naming to docker.io/library/my-docker-html:latest                                                                   0.0s
+ => => unpacking to docker.io/library/my-docker-html:latest
+```
+                                
+```bash
+% docker run -d -p 8080:80 --name my-web-container my-docker-html
+-d의 의미 : 이렇게 하지 않았을 때의 생길 수 있는 문제점
+```
+
+```text
+fe2d267a53c884479c0806de5898e476f9d6f1d0b9fb8e3c6de22c579d93f66c
+```
+
+```bash
+docker ps -a
+```
+
+```text
+CONTAINER ID   IMAGE                COMMAND                   CREATED        STATUS                      PORTS                                     NAMES
+fe2d267a53c8   my-docker-html       "/docker-entrypoint.…"   2 hours ago    Up 2 hours                  0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   my-web-container
+```
+
+### 6-4. 포트 매핑 접속 증거
+![](./실습이미지/도커파일기본.png)
+`-p 8080:80` 옵션으로 호스트 8080 포트를 컨테이너 80 포트에 매핑하여 브라우저 및 `curl`로 접속을 검증했다.
+```
+http://localhost:8080
+```
+
+### 6-5. 바인드 마운트 vs 빌드 이미지 비교 관찰
+
+빌드된 이미지 컨테이너(`web-container`, 8080번 포트)와 별도로, 동일한 `index.html`을 **바인드 마운트**로 연결한 컨테이너(`my-wed-mount`, 8081번 포트)를 함께 띄워 두 방식의 차이를 비교 관찰했다.
+
+**관찰 결과**
+![](./실습이미지/도커파일마운트적용.png)
+- 바인드 마운트(8081)를 적용한 경우: 호스트의 `index.html`을 수정하고 새로고침하면 **즉각적으로 변경 사항이 반영**되었다.
+- 이미지 빌드(8080)만 적용한 경우: 파일을 수정해도 반영되지 않으며, 새 이미지를 다시 `build` → 컨테이너를 재실행 → 새로고침해야 변경 사항이 반영되었다.
+
+**결론**: 바인드 마운트는 개발 중 실시간으로 코드/콘텐츠를 반영해야 할 때 유용하고, 이미지 빌드는 새로운 버전을 고정하여 배포할 때 적합하다는 것을 실습을 통해 확인했다.
+
+---
+
+## Step 7. Docker 볼륨 영속성 검증
+
+**볼륨을 연결한 컨테이너 생성 및 접속**
+
+```bash
+docker run -it --name c1 -v v1:/data ubuntu bash
+```
+
+**컨테이너 안에서 파일 생성 및 확인**
+
+```bash
+echo "fighting!" > /data/volume.txt
+cat /data/volume.txt
+```
+
+```text
+fighting!
+```
+
+**컨테이너에서 빠져나오기**
+
+```bash
+exit
+```
+
+**컨테이너 삭제**
+
+```bash
+docker rm c1
+```
+
+```text
+c1
+```
+
+**새 컨테이너로 동일 볼륨 연결 및 데이터 확인**
+
+```bash
+docker run --name c2 -v v1:/data ubuntu cat /data/volume.txt
+```
+
+```text
+fighting!
+```
+
+**결론**: 컨테이너(c1)를 삭제한 뒤에도 동일한 볼륨(v1)을 새 컨테이너(c2)에 연결하면 이전에 작성한 volume.txt 내용(fighting!)이 그대로 유지되는 것을 확인했다. → **Docker 볼륨은 컨테이너의 생명주기와 독립적으로 데이터를 영속 보관한다.**
+
+---
+
+## Step 8. 트러블슈팅
+
+### 트러블슈팅 1. GitHub Push 거부 오류 (원격 저장소와 로컬 저장소의 동기화 충돌)
+
+**문제 상황**
+
+로컬에서 작업한 내용을 `git push` 하려고 했으나 아래와 같이 업로드가 거부되었다.
+
+```text
+[rejected] main -> main (fetch first)
+```
+
+**원인 가설**
+
+GitHub 웹사이트에서 직접 `README.md`를 수정하거나 파일을 생성한 적이 있어, GitHub에는 있지만 로컬 PC에는 없는 커밋이 존재했을 것으로 추정했다. 이로 인해 두 저장소의 히스토리가 일치하지 않아 충돌이 발생했다고 판단했다.
+
+**확인**
+
+GitHub 저장소 페이지에 접속하여 확인한 결과, GitHub와 VSCode(로컬)에 저장된 폴더·파일 구성이 서로 다르다는 것을 확인했다.
+
+**해결**
+
+```bash
+git pull origin main
+git push
+```
+
+`git pull origin main`으로 원격의 변경 사항을 먼저 가져온 뒤 다시 `git push`를 시도했지만 여전히 해결되지 않았다. GitHub 쪽의 중요한 내용을 별도로 백업해 둔 뒤, 아래 명령으로 강제로 덮어써 해결했다.
+
+```bash
+git push -f
+```
+
+**대안 / 배운 점**
+
+협업 시에는 작업을 시작하기 전 항상 `git pull`을 습관화하여 로컬과 원격의 싱크를 맞추어야 한다. 부득이하게 강제로 덮어써야 하는 상황이라면 `git push -f`를 사용할 수 있지만, 원격의 변경 내용을 덮어쓰는 만큼 주의가 필요하다는 것을 학습했다.
+
+---
+
+### 트러블슈팅 2. 
+
+**문제 상황**<br>
+파일을 만들고 실행시키려고 하면 오류가 발생하는 문제가 있었다. 코드 자체에는 문제가 없어 보이는데도 실행할 때마다 오류가 반복되었다.
+
+**원인 가설**<br>
+처음에는 코드 내부의 로직이나 문법에 문제가 있을 것이라 판단하고, 변수명·함수 구조·파일 경로 표기 방식 등을 여러 차례 의심하며 코드를 수정했다. 파일을 불러오는 부분의 경로 작성 방식이 잘못되었거나, 파일 이름 자체에 오타가 있을 것이라 판단하고 코드를 계속 뜯어고쳤다.
+
+**확인**<br>
+아무리 코드를 수정해도 동일한 오류가 반복되자, 코드 자체보다 실행 환경을 점검해볼 필요가 있다고 판단했다. 터미널에서 아래 명령어로 현재 작업 위치를 확인했다.
+
+**대안 / 배운 점**<br>
+이번 문제를 겪으면서 “코드가 정상적이라면, 실행 환경을 확인해 보자”라는 소중한 교훈을 얻었다. 처음에는 코드 내부의 논리적 오류나 문법 문제일 것이라 맹신하고 수없이 코드를 수정해 보았지만, 실제 원인은 엉뚱하게도 파일을 실행하는 ‘현재 작업 위치)’라는 아주 기초적인 환경적 요인이었다. 이 과정에서 문제의 본질을 놓친 채 엉뚱한 곳을 헤매며 시간을 쏟는 것이 얼마나 비효율적인지 뼈저리게 느꼈다. 앞으로 개발을 할 때는 복잡한 코드 수정에만 매몰되지 않고, `pwd` 명령어로 현재 내 위치를 먼저 확인하는 것처럼 실행 맥락과 환경을 가장 먼저 점검하는 기본기를 잊지 말아야겠다고 다짐했다. 눈앞의 에러에 당황하기보다 시야를 넓혀 전체적인 시스템 환경을 바라보는 개발자의 안목을 기르는 좋은 계기가 되었다.
+
+---
+
+### 트러블슈팅 3.
+
+**문제 상황**
+컨테이너를 ubuntu 이미지로 만들고 `docker run`을 한 뒤 동작하고 있는지 확인하기 위해서 `docker ps`로 확인하였지만 보이지 않는 문제가 있었다.
+
+**원인 가설**
+* 도커 컨테이너는 내부에 실행 중인 메인 프로세스(PID 1)가 종료되면 컨테이너도 즉시 종료된다는 대원칙이 있다.
+* 우분투(Ubuntu) 컨테이너는 기본적으로 실행되는 명령어(`/bin/bash` 등)가 실행되자마자 별도의 입력이나 대기 작업 없이 바로 종료되기 때문에, 컨테이너가 실행되자마자 꺼져버렸을 것이다.
+* 이로 인해 `docker ps` 명령어로 조회했을 때 실행 중인(Running) 목록에 나타나지 않는 것이다.
+
+**확인**
+* `docker ps -a` 명령어를 통해 실행이 종료된 컨테이너까지 포함하여 전체 목록을 확인한다.
+* 우분투 컨테이너가 정상적으로 생성 및 실행되었으나, 곧바로 종료(Exited) 상태로 전환되어 있는 것을 확인할 수 있다.
+
+**배운 점**
+* **도커 컨테이너의 생명 주기(Lifecycle):** 컨테이너는 독립된 운영체제 공간이 아니라 **메인 프로세스(PID 1)의 생명 주기**와 함께한다는 것을 알게 되었다. 즉, 프로세스가 끝나면 컨테이너도 소멸한다.
+* **Ubuntu와 Nginx 이미지의 차이:**
+* **Ubuntu:** OS 환경만 제공하는 이미지로, 대기하는 작업 없이 기본 명령어가 곧바로 끝나버리기 때문에 컨테이너를 계속 켜두려면 `-it` 옵션을 주어 사용자의 입력을 유지해야 한다.
+* **Nginx:** 웹 서버 소프트웨어로서 포그라운드에서 계속 요청을 기다리는 메인 프로세스가 살아 있기 때문에 컨테이너가 유지된다.
+  
+---
+
+## Step 9. 보안 및 개인정보 점검
+
+- [x] 모든 명령어와 출력 결과를 ` ```bash ` / ` ```text ` 코드 블록으로 정리함
+- [x] `git config --list` 결과 중 `user.name`, `user.email`은 마스킹 처리함
+- [x] 터미널 로그 내 홈 경로의 사용자명은 `<user>`로 마스킹함
+- [x] 문서 전체에 토큰, 비밀번호, 개인키, 인증 코드 등 민감 정보는 포함되지 않음을 확인함
+
+---
+
+## 📎 실행 방법 참고
+
+```bash
+git clone https://github.com/roiker7/codyssey_E1-1.git
+cd codyssey_test
+docker build -t my-web .
+docker run -d --name web-container -p 8080:80 my-web
+```
+
+접속 확인:
+
+```bash
+curl http://localhost:8080
+```
