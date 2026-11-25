@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 포트폴리오</title>
+
+    <link rel="stylesheet" href="./css/web_cs.css">
+    <script src="./js/web_js.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <span class="wordmark">&lt;/&gt; 내 포트폴리오</span>
+
+            <button id="nav-toggle" class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="site-nav">
+                ☰
+            </button>
+
+            <nav id="site-nav" class="site-nav">
+                <ul class="nav-list">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><button id="theme-toggle" aria-label="다크모드 전환">🌙</button></li>
+                </ul>
+            </nav>
+        </div>
+        
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1 id="typewriter"></h1>
+            <p class="hero-text">
+                AI를 공부하며 개발의 기초를 하나씩 쌓아가고 있어요.
+            </p>
+            <button class="cta-button">친구 되기!</button>
+        </section>
+
+        <section id="about" class="about">
+            <h2>About</h2>
+            <div class="about-body">
+                <img class="profile-image" src="images/logo-vertical-BAqw98XA.png" alt="코디세이 로고">
+                <p>
+                    코디세이 올인원 2기입니다.<br>
+                    저는 인공지능을 공부하고 있습니다.
+                </p>
+            </div>
+        </section>
+
+        <section class="skills">
+            <h2>Skill</h2>
+            <ul class="skill-list">
+                <li>Python</li>
+                <li>C++</li>
+            </ul>
+        </section>
+
+        <section id="projects" class="projects">
+            <h2>Projects</h2>
+            <div id="language-filters" class="filter-buttons"></div>
+            <div id="projects-container" class="projects-grid"></div>
+        </section>
+
+        <section id="contact" class="contact">
+            <h2>Contact</h2>
+            <form>
+                <label for="name">이름</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="email">이메일</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="message">질의 내용</label>
+                <textarea id="message" name="message" rows="4"></textarea>
+
+                <button type="submit" class="cta-button">문의하기</button>
+                <p id="form-status" class="form-status"></p>
+            </form>
+            <!--  보안상으로 직접 웹에서 이메일이 가지도록 처리는 하지 않음 코드만 작성
+                <form action="여기에 가입할 떄 받은 이메일 주소넣기" method="POST">
+                <label>
+                    이메일 주소: 
+
+                    <input type="email" name="email" required>
+                </label>
+                <br>
+                <label>
+                    메시지:
+                    <textarea name="message" required></textarea>
+                </label>
+                <br>
+                <button type="submit">보내기</button>
+                </form>            
+            -->
+        </section>
+    </main>
+
+    <footer>
+        <p>
+            &copy; 2026 내 포트폴리오. All rights reserved.<br>
+            이미지 출처: <a href="https://codyssey.kr/about/world" target="_blank">코디세이</a>
+        </p>
+    </footer>
+    <button id="topButton">↑</button>
+</body>
+</html>

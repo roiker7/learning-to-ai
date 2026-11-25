@@ -1,0 +1,522 @@
+/* ---------- 기본 설정 ---------- */
+:root {
+    --paper: #F3F2EE;
+    --ink: #1E1E24;
+    --pine: #2F5D50;
+    --amber: #D98E3F;
+    --line: #DAD7CF;
+    --max: 960px;
+}
+
+[data-theme="dark"] {
+    --paper: #1A1A1E;
+    --ink: #F3F2EE;
+    --pine: #6FB6A3;
+    --amber: #E8A860;
+    --line: #3A3A40;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --paper: #1A1A1E;
+        --ink: #F3F2EE;
+        --pine: #6FB6A3;
+        --amber: #E8A860;
+        --line: #3A3A40;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ---------- 레이아웃 컨테이너 (모바일 기준: 좁은 padding) ---------- */
+main {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+    main {
+        padding: 0 24px;
+    }
+}
+
+/* ---------- 섹션 공통 (모바일: 좁은 여백) ---------- */
+section {
+    padding: 48px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+section:last-child {
+    border-bottom: none;
+}
+
+section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+    section {
+        padding: 64px 0;
+    }
+
+    section h2 {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
+}
+
+/* ---------- 헤더 / 내비게이션 ---------- */
+header {
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background-color: transparent;   /* 기본값: 투명 (또는 원하는 초기 색) */
+    z-index: 10;
+    transition: background-color 0.3s;  /* 부드럽게 전환 */
+}
+
+/* scrolled이라는 이름의 클래스가 header에 붙으면 이 스타일 적용 */
+header.scrolled {
+    background-color: var(--pine);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+header.scrolled .wordmark,
+header.scrolled .nav-list a {
+    color: var(--paper);
+}
+/* 밑줄 색도 배경과 어울리게 조정 */
+header.scrolled .nav-list a:hover,
+header.scrolled .nav-list a:focus-visible {
+    border-color: var(--paper);
+}
+
+.header-inner {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 16px; 
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .header-inner {
+        padding: 20px 24px;
+    }
+}
+
+.wordmark {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* 햄버거 버튼: 모바일 기본은 보임 */
+.nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 18px;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+/* nav 전체: 모바일 기본은 숨김, 열리면 헤더 아래로 한 줄 전체 차지 */
+.site-nav {
+    display: none;
+    order: 3;
+    flex-basis: 100%;
+}
+
+.site-nav.open {
+    display: block;
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    padding: 12px 0 4px;
+    margin: 0;
+}
+
+.nav-list li {
+    display: flex;
+    align-items: center;
+    height: 44px;
+}
+
+.nav-list a {
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 15px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    line-height: 1;
+    width: 100%;
+}
+
+.nav-list a:hover,
+.nav-list a:focus-visible {
+    border-color: var(--pine);
+}
+
+/* 768px부터: 햄버거 숨기고, nav를 항상 가로로 표시 */
+@media (min-width: 768px) {
+    .nav-toggle {
+        display: none;
+    }
+
+    .site-nav {
+        display: block !important;
+        order: 0;
+        flex-basis: auto;
+    }
+
+    .nav-list {
+        flex-direction: row;
+        align-items: center;
+        gap: 24px;
+        padding: 0;
+    }
+}
+
+#typewriter {
+    white-space: pre-line;
+    display: block;
+    min-height: 2.8em;
+    line-height: 1.4;
+}
+
+/* ---------- Hero (모바일: 여백 좁게, 화면 커질수록 넉넉하게) ---------- */
+.hero {
+    padding-top: 56px;
+}
+
+.hero h1 {
+    font-size: clamp(32px, 8vw, 52px);
+    line-height: 1.15;
+}
+
+.hero-text {
+    margin-top: 16px;
+    margin-bottom: 24px;
+    color: #a1a1ae;
+    max-width: 46ch;
+}
+
+@media (min-width: 768px) {
+    .hero {
+        padding-top: 88px;
+    }
+
+    .hero-text {
+        margin-top: 20px;
+        margin-bottom: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hero {
+        padding-top: 120px;
+    }
+}
+
+/* ---------- 버튼 (CTA) ---------- */
+.cta-button {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    background-color: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cta-button:hover {
+    background-color: var(--pine);
+}
+
+.cta-button:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+}
+
+/* ---------- 다크모드 버튼 ---------- */
+#theme-toggle {
+    background: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* ---------- About (모바일: 세로, 768px부터 가로) ---------- */
+.about-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: #F3F2EE;
+}
+
+@media (min-width: 768px) {
+    .about-body {
+        flex-direction: row;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .profile-image {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+/* ---------- Skill ---------- */
+.skill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.skill-list li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    border: 1px solid var(--pine);
+    color: var(--pine);
+    padding: 6px 14px;
+    border-radius: 999px;
+}
+
+/* ---------- Projects ---------- */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .projects-grid {
+        gap: 20px;
+    }
+}
+
+.project-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover,
+.project-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--pine);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.project-card h3 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.project-card p {
+    font-size: 14px;
+    color: #6B6B72;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.projects-status {
+    grid-column: 1 / -1;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 32px 16px;
+    text-align: center;
+    color: #6B6B72;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.filter-btn {
+    font-size: 13px;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.filter-btn:hover {
+    border-color: var(--pine);
+}
+
+.filter-btn.active {
+    background-color: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+}
+
+/* ---------- Contact ---------- */
+.contact form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.contact label {
+    font-size: 14px;
+    margin-top: 16px;
+    color: #a1a1ae;
+}
+
+.contact input,
+.contact textarea {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    resize: vertical;
+}
+
+.contact input:focus-visible,
+.contact textarea:focus-visible {
+    outline: none;
+    border-bottom-color: var(--pine);
+}
+
+.contact button {
+    margin-top: 24px;
+    align-self: flex-start;
+}
+
+.form-status {
+    font-size: 14px;
+    color: var(--pine);
+    margin-top: 12px;
+    min-height: 1.2em; /* 메시지 없을 때도 자리 미리 확보해 레이아웃이 안 흔들리게 */
+}
+
+/* ---------- Top Button ---------- */
+#topButton {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+
+  width: 50px;
+  height: 50px;
+
+  border: none;
+  border-radius: 50%;
+
+  background-color: #333;
+  color: white;
+
+  font-size: 24px;
+  cursor: pointer;
+
+  display: none;
+
+  z-index: 999;
+}
+
+#topButton:hover {
+  background-color: #555;
+}
+
+/* ---------- Footer ---------- */
+footer {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 32px 16px 48px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #6B6B72;
+}
+
+@media (min-width: 768px) {
+    footer {
+        padding: 32px 24px 64px;
+    }
+}
+
+footer a {
+    color: inherit;
+}
+
+/* ---------- 모션 최소화 옵션 존중 ---------- */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
