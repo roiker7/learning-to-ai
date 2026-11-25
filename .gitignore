@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+node_modules/
+.env
+.env.*
+*.pem
+# 프로그램을 실행하면 생기는 개인 데이터
+/과제/*/data/
+/과제/*/test_data/
