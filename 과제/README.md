@@ -11,7 +11,7 @@
 | [B1-1](B1-1/) | [B1-1](https://github.com/roiker7/B1-1) | 합침 |
 | [B1-2](B1-2/) | [B1-2](https://github.com/roiker7/B1-2) | 합침. `vercel.json` 배포는 원본에서 유지 |
 | [B2-1](B2-1/) | [B2-1](https://github.com/roiker7/B2-1) | 합침. 진행 중이며 커밋하지 않았던 완성 코드 포함 |
-| B2-2 | [B2-2](https://github.com/roiker7/B2-2) | 원격이 비어 있어 합칠 내용이 없음. 로컬 폴더에는 팀 저장소 복사본만 있음 |
+| B2-2 | [팀 저장소](https://github.com/jhj9109/cody_git_team) | 팀 과제. 합치지 않고 링크만 남김 |
 
 커밋 기록의 개인·코디세이 이메일은 GitHub 비공개 주소로 바꿔 가져왔다. 그래서 일부 커밋 번호가 원본과 다르다.
 

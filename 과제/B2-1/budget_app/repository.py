@@ -11,6 +11,7 @@ from .models import Transaction
 from .validators import parse_amount, parse_category_name, parse_month
 
 
+@contextmanager
 def atomic_writer(path: Path, encoding: str = "utf-8") -> Iterator[IO[str]]:
     """임시 파일에 모두 쓴 뒤 교체한다. 중간에 실패하면 원본은 그대로 남는다."""
     target = path.resolve()
