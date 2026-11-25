@@ -5,9 +5,9 @@
 ## 과제 목록
 | 과제 | 원본 저장소 | 상태 (2026-11-25) |
 |---|---|---|
-| [E1-1](E1-1/) | [codyssey_E1-1](https://github.com/roiker7/codyssey_E1-1) | 합침 |
-| [E1-2](E1-2/) | [codyssey_E1-2](https://github.com/roiker7/codyssey_E1-2) | 합침 (main 브랜치만) |
-| [E1-3](E1-3/) | [codyssey_E1-3](https://github.com/roiker7/codyssey_E1-3) | 합침 (main 브랜치만) |
+| [E1-1](A_E1-1/) | [codyssey_E1-1](https://github.com/roiker7/codyssey_E1-1) | 합침 |
+| [E1-2](A_E1-2/) | [codyssey_E1-2](https://github.com/roiker7/codyssey_E1-2) | 합침 (main 브랜치만) |
+| [E1-3](A_E1-3/) | [codyssey_E1-3](https://github.com/roiker7/codyssey_E1-3) | 합침 (main 브랜치만) |
 | [B1-1](B1-1/) | [B1-1](https://github.com/roiker7/B1-1) | 합침 |
 | [B1-2](B1-2/) | [B1-2](https://github.com/roiker7/B1-2) | 합침. `vercel.json` 배포는 원본에서 유지 |
 | [B2-1](B2-1/) | [B2-1](https://github.com/roiker7/B2-1) | 합침. 진행 중이며 커밋하지 않았던 완성 코드 포함 |
