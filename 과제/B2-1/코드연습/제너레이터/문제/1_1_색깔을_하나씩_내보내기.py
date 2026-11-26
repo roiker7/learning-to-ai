@@ -1,7 +1,8 @@
 # 설명은 개념/1단계_yield와_next.md
 def colors():
-    # TODO
-    pass
+    yield "빨강"
+    yield "노랑"
+    yield "파랑"
 
 
 
