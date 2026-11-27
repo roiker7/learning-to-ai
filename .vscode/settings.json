@@ -1,0 +1,5 @@
+{
+  "github.copilot.enable": { "*": false },
+  "editor.inlineSuggest.enabled": false,
+  "terminal.integrated.defaultLocation": "editor"
+}

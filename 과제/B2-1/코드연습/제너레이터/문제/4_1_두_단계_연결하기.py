@@ -1,12 +1,13 @@
 # 설명은 개념/4단계_제너레이터_연결하기.md
 def long_words(words, n):
-    # TODO
-    pass
+    for i in words:
+        if len(i) >= n:
+            yield i 
 
 def add_mark(words):
-    # TODO
-    pass
-
+    for i in words:
+        a = i + "!"
+        yield a
 
 
 if __name__ == "__main__":

@@ -1,8 +1,10 @@
 # 설명은 개념/3단계_파일을_한줄씩_읽기.md
 def read_memos(path):
-    # TODO
-    pass
-
+    with open(path, encoding='utf-8') as file:
+        for line in file:
+            if line.strip() == '':
+                continue
+            yield line.strip()
 
 
 if __name__ == "__main__":

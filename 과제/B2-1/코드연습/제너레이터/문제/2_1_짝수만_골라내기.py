@@ -1,8 +1,9 @@
 # 설명은 개념/2단계_필요한_만큼만_꺼내기.md
 def evens(numbers):
-    # TODO
-    pass
-
+    for n in numbers:
+        if n % 2 == 0:
+            yield n
+    
 
 
 if __name__ == "__main__":
